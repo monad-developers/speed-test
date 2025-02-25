@@ -157,9 +157,12 @@ export default function Home() {
         <br/>
         <b>Feedback or suggestions? Want to build on Monad?</b>
         <ul>
-          <li><a href="https://github.com/monadlabs/monad-testnet-faucet"><b>Open a PR</b></a></li>
-          <li>Join the <a href="http://discord.gg/monaddev"><b>Discord</b></a></li>
-          <li>Check out the <a href="https://docs.monad.xyz"><b>docs</b></a></li>
+          <li><a href="https://github.com/monad-developers/speed-test"><b>Edit</b></a> this app</li>
+          <li><a href="https://testnet.monad.xyz"><b>Testnet hub & faucet</b></a> | &nbsp;
+              <a href="http://discord.gg/monaddev"><b>Discord</b></a> |&nbsp;
+              <a href="https://docs.monad.xyz"><b>Docs</b></a> |&nbsp;
+              <a href="https://docs.monad.xyz/getting-started/network-information"><b>Network info</b></a>
+          </li>
         </ul>
       </main>
     </div>
