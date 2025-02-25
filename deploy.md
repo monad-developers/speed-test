@@ -36,3 +36,10 @@ forge create \
   --verifier sourcify \
   --verifier-url https://sourcify-api-monad.blockvision.org
 ```
+
+## Copy ABI and bytecode to `deployments/` since it's referenced by scripts
+
+```shell
+cp -r out/Counter.sol deployments/Counter.sol
+```
+

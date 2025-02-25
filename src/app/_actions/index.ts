@@ -2,7 +2,7 @@
 
 import { monadTestnet } from "viem/chains";
 import { addresses as ADDRESSES } from "../../../deployments/deployments.json";
-import {abi as CounterAbi, bytecode as CounterBytecode} from "../../../out/Counter.sol/Counter.json";
+import {abi as CounterAbi, bytecode as CounterBytecode} from "../../../deployments/Counter.sol/Counter.json";
 
 import { PUBLIC_CLIENT, WALLET_CLIENT, ACCOUNT, getNonce } from "../../common";
 

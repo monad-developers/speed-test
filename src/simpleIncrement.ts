@@ -3,7 +3,7 @@ const { hideBin } = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv)).parse()
 
 import { addresses as ADDRESSES } from "../deployments/deployments.json";
-import {abi as CounterAbi, bytecode as CounterBytecode} from "../out/Counter.sol/Counter.json";
+import {abi as CounterAbi, bytecode as CounterBytecode} from "../deployments/Counter.sol/Counter.json";
 
 import { deployContract, PUBLIC_CLIENT, WALLET_CLIENT, getNonce } from "./common";
 
