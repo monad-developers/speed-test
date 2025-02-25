@@ -2,20 +2,20 @@ const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv)).parse()
 
-import { addresses as ADDRESSES } from "../deployments/deployments.json";
-import {abi as CounterAbi, bytecode as CounterBytecode} from "../deployments/Counter.sol/Counter.json";
+import deploymentInfo from "../deployments/deployments.json";
+import {abi as CounterAbi} from "../deployments/Counter.sol/Counter.json";
 
-import { deployContract, PUBLIC_CLIENT, WALLET_CLIENT, getNonce } from "./common";
+import { PUBLIC_CLIENT, WALLET_CLIENT, getNonce } from "./common";
 
 
-async function deployCounter() {
-    await deployContract(CounterAbi, CounterBytecode['object'] as `0x${string}`);
-}
+// async function deployCounter() {
+//     await deployContract(CounterAbi, CounterBytecode['object'] as `0x${string}`);
+// }
 
 const callManyTimes = async (functionName: string, input: number, copies: number) => {
     const nonce = await getNonce()
 
-    const contractAddress = ADDRESSES["Counter"] as `0x${string}`;
+    const contractAddress = deploymentInfo.addresses["Counter"] as `0x${string}`;
 
     const gasNeeded = await PUBLIC_CLIENT.estimateContractGas({
         address: contractAddress as `0x${string}`,
@@ -27,10 +27,10 @@ const callManyTimes = async (functionName: string, input: number, copies: number
 
     const numPerBlock = Math.floor(150_000_000 / Number(gasNeeded))
 
-    let batchSizes = []
+    const batchSizes = []
     let needed = copies
     while(needed > 0) {
-        let count = Math.min(needed, numPerBlock)
+        const count = Math.min(needed, numPerBlock)
         batchSizes.push(count)
         needed -= count
     }
@@ -40,10 +40,10 @@ const callManyTimes = async (functionName: string, input: number, copies: number
     }
 
     let offset = 0
-    let all_hashes = []
+    const all_hashes = []
     for( let i=0; i < batchSizes.length; i++) {
-        let batchSize = batchSizes[i]
-        let transactions = Array(Number(batchSize)).fill(null).map(async (_, j) => {
+        const batchSize = batchSizes[i]
+        const transactions = Array(Number(batchSize)).fill(null).map(async (_, j) => {
             return await WALLET_CLIENT.writeContract({
                 address: contractAddress as `0x${string}`,
                 abi: CounterAbi,
@@ -56,7 +56,7 @@ const callManyTimes = async (functionName: string, input: number, copies: number
 
         offset += batchSize
 
-        let hashes = await Promise.all(transactions);
+        const hashes = await Promise.all(transactions);
         for( let j=0; j < batchSize; j++) {
             console.log("tx hash", hashes[j])
             all_hashes.push(hashes[j])
@@ -69,11 +69,12 @@ const callManyTimes = async (functionName: string, input: number, copies: number
 
         if (copies == 1) {
             // wait for the last tx to be mined
-            let receipt = await PUBLIC_CLIENT.waitForTransactionReceipt({
+            const receipt = await PUBLIC_CLIENT.waitForTransactionReceipt({
                 hash: hashes[hashes.length - 1],
             })
 
-            console.log("tx receipt", receipt)
+            // console.log("tx receipt", receipt)
+            console.log("in block", receipt.blockNumber, "gas used", receipt.gasUsed);
         }
     }
 }

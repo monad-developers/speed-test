@@ -2,7 +2,7 @@
 
 import { monadTestnet } from "viem/chains";
 import { addresses as ADDRESSES } from "../../../deployments/deployments.json";
-import {abi as CounterAbi, bytecode as CounterBytecode} from "../../../deployments/Counter.sol/Counter.json";
+import {abi as CounterAbi} from "../../../deployments/Counter.sol/Counter.json";
 
 import { PUBLIC_CLIENT, WALLET_CLIENT, ACCOUNT, getNonce } from "../../common";
 
@@ -30,7 +30,7 @@ export async function getLinkToTransaction(txHash: string) {
 
 export async function callManyTimes (functionName: string, input: number, copies: number) {
 
-  let output = []
+  const output = []
 
   const nonce = await getNonce()
   const contractAddress = ADDRESSES["Counter"] as `0x${string}`;
@@ -56,10 +56,10 @@ export async function callManyTimes (functionName: string, input: number, copies
 
   const numPerBlock = Math.floor(150_000_000 / Number(gasNeeded))
 
-  let batchSizes = []
+  const batchSizes = []
   let needed = copies
   while(needed > 0) {
-      let count = Math.min(needed, numPerBlock)
+      const count = Math.min(needed, numPerBlock)
       batchSizes.push(count)
       needed -= count
   }
@@ -69,10 +69,10 @@ export async function callManyTimes (functionName: string, input: number, copies
   }
 
   let offset = 0
-  let all_hashes = []
+  const all_hashes = []
   for( let i=0; i < batchSizes.length; i++) {
-      let batchSize = batchSizes[i]
-      let transactions = Array(Number(batchSize)).fill(null).map(async (_, j) => {
+      const batchSize = batchSizes[i]
+      const transactions = Array(Number(batchSize)).fill(null).map(async (_, j) => {
           return await WALLET_CLIENT.writeContract({
               address: contractAddress as `0x${string}`,
               abi: CounterAbi,
@@ -85,7 +85,7 @@ export async function callManyTimes (functionName: string, input: number, copies
 
       offset += batchSize
 
-      let hashes = await Promise.all(transactions);
+      const hashes = await Promise.all(transactions);
       for( let j=0; j < batchSize; j++) {
           output.push(await getLinkToTransaction(hashes[j]))
           all_hashes.push(hashes[j])
@@ -94,15 +94,6 @@ export async function callManyTimes (functionName: string, input: number, copies
       if (i < batchSizes.length - 1) {
           // sleep for 400ms (i.e. until next block)
           await new Promise(resolve => setTimeout(resolve, 400));
-      }
-
-      if (copies == 1) {
-          // wait for the last tx to be mined
-          let receipt = await PUBLIC_CLIENT.waitForTransactionReceipt({
-              hash: hashes[hashes.length - 1],
-          })
-
-          console.log("tx receipt", receipt)
       }
   }
 

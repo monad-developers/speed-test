@@ -2,7 +2,7 @@ const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv)).parse()
 
-import { addresses as ADDRESSES } from "../deployments/deployments.json";
+import deploymentInfo from "../deployments/deployments.json";
 import {abi as CounterAbi, bytecode as CounterBytecode} from "../deployments/Counter.sol/Counter.json";
 
 import { deployContract, PUBLIC_CLIENT, WALLET_CLIENT, getNonce } from "./common";
@@ -15,7 +15,7 @@ async function deployCounter() {
 
 // note: uses static address mapping from deployments.json
 async function incrementManyTimes(input: number) {
-    const contractAddress = ADDRESSES["Counter"] as `0x${string}`;
+    const contractAddress = deploymentInfo.addresses["Counter"] as `0x${string}`;
 
     console.log("calling incrementMany", input, "times");
 
