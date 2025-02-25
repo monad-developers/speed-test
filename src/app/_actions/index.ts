@@ -4,8 +4,12 @@ import { monadTestnet } from "viem/chains";
 import { addresses as ADDRESSES } from "../../../deployments/deployments.json";
 import {abi as CounterAbi, bytecode as CounterBytecode} from "../../../out/Counter.sol/Counter.json";
 
-import { deployContract, PUBLIC_CLIENT, WALLET_CLIENT, ACCOUNT, getNonce } from "../../common";
+import { PUBLIC_CLIENT, WALLET_CLIENT, ACCOUNT, getNonce } from "../../common";
 
+
+export async function getPublicKey() {
+  return ACCOUNT.address
+}
 
 export async function getSenderBalance() {
   const balance =

@@ -1,6 +1,6 @@
 'use client'
 
-import { callManyTimes, getSenderBalance } from '@/app/_actions'
+import { callManyTimes, getPublicKey, getSenderBalance } from '@/app/_actions'
 import { useEffect, useState } from 'react'
 
 export const maxDuration = 300
@@ -8,6 +8,7 @@ export const maxDuration = 300
 export default function Home() {
   const [output, setOutput] = useState('')
   const [faucetBalance, setFaucetBalance] = useState('')
+  const [pubKey, setPubKey] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -66,6 +67,7 @@ export default function Home() {
   }
 
   const updateBalanceBox = async () => {
+    setPubKey(await getPublicKey())
     setFaucetBalance(await getSenderBalance())
   }
 
@@ -81,7 +83,7 @@ export default function Home() {
         </h2>
 
         <p>
-          <b>Sender balance:</b> {faucetBalance}
+          Sender ({pubKey}) balance: {faucetBalance}
         </p>
 
         <form onSubmit={handleFormSubmit}>
