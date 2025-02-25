@@ -1,101 +1,165 @@
-import Image from "next/image";
+'use client'
+
+import { callManyTimes, getSenderBalance } from '@/app/_actions'
+import { useEffect, useState } from 'react'
+
+export const maxDuration = 300
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [output, setOutput] = useState('')
+  const [faucetBalance, setFaucetBalance] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    try {
+      const formData = new FormData(e.target as HTMLFormElement)
+      const functionName = formData.get('functionName') as string
+      const imInput = formData.get('imInput') as string
+      const copies = formData.get('copies') as string
+
+      // input validation
+      if (!['incrementMany', 'pushMany', 'freeMany'].includes(functionName)) {
+        setOutput('Invalid function name ' + functionName)
+        setIsLoading(false)
+        return
+      }
+
+      const imInputNumber = parseInt(imInput)
+      // check if imInputNumber is a positive integer
+      if (isNaN(imInputNumber) || imInputNumber < 1) {
+        setOutput('Invalid input' + imInputNumber)
+        setIsLoading(false)
+        return
+      }
+
+      if (functionName === 'incrementMany' && imInputNumber > 400000) {
+        setOutput('Invalid input for incrementMany: ' + imInputNumber + 
+          '; exceeds block gas limit (150M); please pick a number between 1 and 400k')
+        setIsLoading(false)
+        return
+      }
+      if (functionName === 'pushMany' && imInputNumber > 6500) {
+        setOutput('Invalid input for pushMany: ' + imInputNumber + 
+          '; exceeds block gas limit (150M); please pick a number between 1 and 6500')
+        setIsLoading(false)
+        return
+      }
+
+      const copiesNumber = parseInt(copies)
+      if (isNaN(copiesNumber) || copiesNumber < 1 || copiesNumber > 10) {
+        setOutput('Invalid copies: ' + copiesNumber + '; please pick a number between 1 and 10')
+        setIsLoading(false)
+        return
+      }
+      
+      const output = await callManyTimes(functionName, imInputNumber, copiesNumber)
+      const outputString = output.join('<br>')
+      setOutput(outputString)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      setOutput(`Error: ${errorMessage}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const updateBalanceBox = async () => {
+    setFaucetBalance(await getSenderBalance())
+  }
+
+  useEffect(() => {
+    updateBalanceBox()
+  }, [])
+
+  return (
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-0 sm:p-15 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+        <h2>
+          <b>Send a big transaction</b>
+        </h2>
+
+        <p>
+          <b>Sender balance:</b> {faucetBalance}
+        </p>
+
+        <form onSubmit={handleFormSubmit}>
+        <b>functionName:</b>
+        <br />
+          <select name="functionName" defaultValue="incrementMany"
+          style={{
+            border: '1px solid black',
+            padding: '5px 10px',
+            position: 'relative',
+            borderRadius: '5px',
+          }}>
+            <option value="incrementMany">incrementMany</option>
+            <option value="pushMany">pushMany</option>
+            <option value="freeMany">freeMany</option>
+          </select>
+          <br />
+          <br />
+          <b>argument (max 400k):</b>
+          <br />
+          <input 
+            type="text" name="imInput" placeholder="number" defaultValue="10000" size={42}
+            style={{
+              border: '1px solid black',
+              padding: '5px 10px',
+              position: 'relative',
+              borderRadius: '5px',
+            }}/>
+          <br />
+          <br />
+          <b>copies (be reasonable pls):</b>  
+          <br />
+          <input 
+            type="text" name="copies" placeholder="copies" defaultValue="1" size={42}
+            style={{
+              border: '1px solid black',
+              padding: '5px 10px',
+              position: 'relative',
+              borderRadius: '5px',
+            }}/>
+          <br />
+          <br />
+          <button
+            type="submit"
+            disabled={isLoading}
+            style={{
+              border: '1px solid black',
+              padding: '5px 10px',
+              position: 'relative',
+              borderRadius: '5px',
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                Sending...
+              </div>
+            ) : (
+              'Send'
+            )}
+          </button>
+        </form>
+        <hr />
+
+        <b>Output:</b>
+        <div
+          id="output-box"
+          className="w-full h-full bg-gray-100 rounded-lg p-4"
+          dangerouslySetInnerHTML={{ __html: output }}
+        />
+        <br/>
+        <b>Feedback or suggestions? Want to build on Monad?</b>
+        <ul>
+          <li><a href="https://github.com/monadlabs/monad-testnet-faucet"><b>Open a PR</b></a></li>
+          <li>Join the <a href="http://discord.gg/monaddev"><b>Discord</b></a></li>
+          <li>Check out the <a href="https://docs.monad.xyz"><b>docs</b></a></li>
+        </ul>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
-  );
+  )
 }
